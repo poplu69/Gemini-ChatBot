@@ -5,6 +5,9 @@ import axios from 'axios';
 function App() {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  let utterance;
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -22,8 +25,21 @@ function App() {
   }
 
   const speakHandler = () => {
-    const utterence = new SpeechSynthesisUtterance(response);
-    window.speechSynthesis.speak(utterence);
+    if (!isSpeaking) {
+      // Start speaking
+      utterance = new SpeechSynthesisUtterance(response);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+
+      // Handle the end of speech
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+    } else {
+      // Stop speaking
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
   }
 
   return (
@@ -35,7 +51,6 @@ function App() {
         <p className='label'>Question</p>
         <textarea onChange={(e) => {setQuestion(e.target.value)}}/>
         <button onClick={submitHandler}>Send</button>
-        
       </div>
       <div className='box'>
         <div className='profile-pic'>
@@ -43,7 +58,7 @@ function App() {
         </div>
         <p className='label'>Response</p>
         <textarea value={response}/>
-        <button onClick={speakHandler}>Speak</button>
+        <button onClick={speakHandler}>{isSpeaking ? 'Stop' : 'Speak'}</button>
       </div>
     </div>
   );
